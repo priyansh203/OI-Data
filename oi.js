@@ -119,7 +119,7 @@ function clearData() {
 
 // Display the initial data and set an interval to update every 3 minutes
 displayOI();
-setInterval(displayOI, 3 * 60 * 10000/60/3); // 3 minutes in milliseconds
+setInterval(displayOI, 3 * 60 * 1000); // 3 minutes in milliseconds
 
 // Load and display data from local storage when the page loads
 window.addEventListener('load', loadAndDisplayData);
