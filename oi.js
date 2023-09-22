@@ -1,9 +1,10 @@
-async function getOI(CEPE,strikePrice) {
+async function getOI(CP,sP) {
   const index = "nifty";
   const num = "9"; // for banknifty num="23"
   const expiry = "2023-09-21";
-  // const CEPE = "PE";
-  // const strikePrice = "46100.00";
+  const CEPE = CP
+  const strikePrice=sP
+
   let OI_long = 0;
 
   const url = `https://www.moneycontrol.com/india/indexfutures/${index}/${num}/${expiry}/OPTIDX/${CEPE}/${strikePrice}/true`;
