@@ -1,7 +1,7 @@
 async function getOI(CP,sP) {
   const index = "nifty";
   const num = "9"; // for banknifty num="23"
-  const expiry = "2023-09-21";
+  const expiry = "2023-09-28";
   const CEPE = CP
   const strikePrice=sP
 
