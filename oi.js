@@ -1,10 +1,19 @@
-async function getOI(CEPE,strikePrice) {
-  const index = "nifty";
-  const num = "9"; // for banknifty num="23"
-  const expiry = "2023-09-28";
+async function getOI(CEPE,strikePrice,index,expiry) {
+  // const index = "banknifty";
+  let num = "9"; // for banknifty num="23"
+  // const expiry = "2023-09-28";
   // const CEPE = "PE";
   // const strikePrice = "46100.00";
   let OI_long = 0;
+
+  if(index==="banknifty"){
+    num="23"
+  }
+  else{
+    num="9"
+  }
+  console.log(num)
+  
 
   const url = `https://www.moneycontrol.com/india/indexfutures/${index}/${num}/${expiry}/OPTIDX/${CEPE}/${strikePrice}/true`;
 
@@ -51,15 +60,56 @@ async function getOI(CEPE,strikePrice) {
   return OI_long;
 }
 
+
+
+async function getSumation(CEPE,dataArray,index,expiry){
+  let sum=0;
+  
+    console.log(dataArray);
+  for(i=0;i<dataArray.length-1;i++)
+  {
+    let temp = await getOI(CEPE,dataArray[i],index,expiry);
+    
+    sum=sum+temp
+  }
+  return sum;
+  
+}
+
+function handleGetDataClick() {
+  
+
+  // Call the getData function with the array as a parameter
+  // getSumation(dataArray);
+  displayOI();
+  setInterval(displayOI, 3 * 60 * 1000);
+}
+
+
+document.getElementById('getDataButton').addEventListener('click', handleGetDataClick);
+
+
 let prevCE=0
 let prevPE=0
+
 async function displayOI() {
   try {
-    const openInterestCE = await getOI("CE","19700.00");
-    const openInterestPE = await getOI("PE","19750.00");
+      // Get the user input from the text field
+  
+    // Split the input string into an array using space as the delimiter
+    const index = document.getElementById('index').value;
+    const expiry = document.getElementById('expiry').value;
+    const userInput = document.getElementById('textfield').value;
+    const dataArray = userInput.split(' ');
+    
+    
+    
+    const openInterestCE =  await getSumation("CE",dataArray,index,expiry);
+    const openInterestPE = await getSumation("PE",dataArray,index,expiry);
     const currentTime = new Date().toLocaleTimeString();
     let diffCE=openInterestCE-prevCE
     let diffPE=openInterestPE-prevPE
+    let diffCEPE=openInterestPE-openInterestCE
 
     // Create a unique key for this data (e.g., using a timestamp)
     const dataKey = Date.now().toString();
@@ -70,7 +120,8 @@ async function displayOI() {
       openInterestCE,
       openInterestPE,
       diffCE,
-      diffPE
+      diffPE,
+      diffCEPE
     };
     localStorage.setItem(dataKey, JSON.stringify(savedData));
     
@@ -80,6 +131,7 @@ async function displayOI() {
       <p>Current time: ${currentTime}</p>
       <p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbspCE OI: ${openInterestCE}&nbsp&nbsp&nbsp&nbsp&nbspDiffCE: ${diffCE} </p>
       <p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbspPE OI: ${openInterestPE}&nbsp&nbsp&nbsp&nbsp&nbspDiffPE: ${diffPE}</p>
+      <p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbspPE-CE: ${diffCEPE}</p>
     `;
     oiContainer.appendChild(newDiv);
     prevCE=openInterestCE
@@ -105,6 +157,7 @@ function loadAndDisplayData() {
       <p>Current time: ${savedData.currentTime}</p>
       <p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbspCE OI: ${savedData.openInterestCE}&nbsp&nbsp&nbsp&nbsp&nbspDiffCE: ${savedData.diffCE} </p>
       <p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbspPE OI: ${savedData.openInterestPE}&nbsp&nbsp&nbsp&nbsp&nbspDiffPE: ${savedData.diffPE}</p>
+      <p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbspPE-CE: ${savedData.diffCEPE}</p>
     `;
     oiContainer.appendChild(newDiv);
   }
@@ -118,8 +171,8 @@ function clearData() {
 }
 
 // Display the initial data and set an interval to update every 3 minutes
-displayOI();
-setInterval(displayOI, 3 * 60 * 1000); // 3 minutes in milliseconds
+// displayOI();
+// setInterval(displayOI, 3 * 60 * 1000); // 3 minutes in milliseconds
 
 // Load and display data from local storage when the page loads
 window.addEventListener('load', loadAndDisplayData);
