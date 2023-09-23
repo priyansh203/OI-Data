@@ -2,3 +2,38 @@ html {
   height: 100%;
   width: 100%;
 }
+input{
+  padding: 3px 0 3px 1px;
+
+  margin-bottom : 4px;
+}
+
+table, th, td {
+  border: 3px solid black;
+  border-collapse: collapse;
+  padding: 6px;
+}
+th {
+  background-color: #9fbcfe;
+  text-align: center;
+  font-size: 20px;
+  padding: 10px;
+}
+
+td {
+  background-color: #d1ffff;
+  text-align: center;
+  font-size: 20px;
+  padding: 10px;
+}
+.green-bg {
+  background-color: #2afe2a;
+  color: black; /* You can adjust the text color as needed */
+}
+.red-bg{
+  background-color: #ff4d4d;
+  color: black; /* You can adjust the text color as needed */
+}
+#clearButton{
+  margin-bottom: 5px;
+}
