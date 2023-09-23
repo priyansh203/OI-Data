@@ -63,15 +63,20 @@ async function getOI(CEPE,strikePrice,index,expiry) {
 
 
 async function getSumation(CEPE,dataArray,index,expiry){
-  let sum=0;
+  let promises = []; // Store promises for each getOI call
+  console.log(dataArray);
   
-    console.log(dataArray);
-  for(i=0;i<dataArray.length-1;i++)
-  {
-    let temp = await getOI(CEPE,dataArray[i],index,expiry);
-    
-    sum=sum+temp
+  for (let i = 0; i < dataArray.length; i++) {
+    // Push each getOI call into the promises array
+    promises.push(getOI(CEPE, dataArray[i], index, expiry));
   }
+
+  // Use Promise.all to execute all promises concurrently and wait for all to complete
+  let results = await Promise.all(promises);
+
+  // Sum up the results
+  let sum = results.reduce((accumulator, currentValue) => accumulator + currentValue, 0);
+
   return sum;
   
 }
@@ -91,6 +96,7 @@ document.getElementById('getDataButton').addEventListener('click', handleGetData
 
 let prevCE=0
 let prevPE=0
+let prevDiffInOI=0
 
 async function displayOI() {
   try {
@@ -110,6 +116,7 @@ async function displayOI() {
     let diffCE=openInterestCE-prevCE
     let diffPE=openInterestPE-prevPE
     let diffCEPE=openInterestPE-openInterestCE
+    let changeInDirection=diffCEPE-prevDiffInOI
 
     // Create a unique key for this data (e.g., using a timestamp)
     const dataKey = Date.now().toString();
@@ -124,18 +131,49 @@ async function displayOI() {
       diffCEPE
     };
     localStorage.setItem(dataKey, JSON.stringify(savedData));
+
+
+let oiTable = document.getElementById('openInterestTable');
     
-    const oiContainer = document.getElementById('openInterestContainer');
-    const newDiv = document.createElement('div');
-    newDiv.innerHTML = `
-      <p>Current time: ${currentTime}</p>
-      <p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbspCE OI: ${openInterestCE}&nbsp&nbsp&nbsp&nbsp&nbspDiffCE: ${diffCE} </p>
-      <p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbspPE OI: ${openInterestPE}&nbsp&nbsp&nbsp&nbsp&nbspDiffPE: ${diffPE}</p>
-      <p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbspPE-CE: ${diffCEPE}</p>
+    // Create a table if it doesn't exist
+    if (!oiTable) {
+      const newTable = document.createElement('table');
+      newTable.id = 'openInterestTable';
+      newTable.innerHTML = `
+        <thead>
+          <tr>
+            <th>Current time</th>
+            <th>CE OI</th>
+            <th>PE OI</th>
+            <th>Change in CE</th>
+            <th>Change in PE</th>
+            <th>Diff. in OI</th>
+            <th>Change in Direction</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      `;
+      oiTable = newTable;
+      document.body.appendChild(oiTable);
+    }
+
+    const oiTableBody = oiTable.querySelector('tbody');
+    const newRow = document.createElement('tr');
+    newRow.innerHTML = `
+      <td>${currentTime}</td>
+      <td>${openInterestCE}</td>
+      <td>${openInterestPE}</td>
+      <td class="${diffCE <= 0 ? 'green-bg' : 'red-bg'}">${diffCE}</td>
+      <td class="${diffPE >= 0 ? 'green-bg' : 'red-bg'}">${diffPE}</td>
+      <td>${diffCEPE}</td>
+      <td class="${changeInDirection >= 0 ? 'green-bg' : 'red-bg'}">${changeInDirection}</td>
+      
     `;
-    oiContainer.appendChild(newDiv);
+    oiTableBody.appendChild(newRow);
+    
     prevCE=openInterestCE
     prevPE=openInterestPE
+    prevDiffInOI=diffCEPE
     
 
   } catch (error) {
@@ -175,7 +213,7 @@ function clearData() {
 // setInterval(displayOI, 3 * 60 * 1000); // 3 minutes in milliseconds
 
 // Load and display data from local storage when the page loads
-window.addEventListener('load', loadAndDisplayData);
+// window.addEventListener('load', loadAndDisplayData);
 
 // Attach event listener to the "Clear" button
 const clearButton = document.getElementById('clearButton');
